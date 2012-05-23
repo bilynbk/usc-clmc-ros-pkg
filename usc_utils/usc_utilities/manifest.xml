@@ -18,6 +18,7 @@
   
   <depend package="rosbag"/>
   <depend package="bspline"/>
+  <depend package="eigen"/>
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lusc_utilities"/>

@@ -21,9 +21,9 @@ rosbuild_genmsg()
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
-find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
-add_definitions(${EIGEN_DEFINITIONS})
+#find_package(Eigen REQUIRED)
+#include_directories(${EIGEN_INCLUDE_DIRS})
+#add_definitions(${EIGEN_DEFINITIONS})
 
 rosbuild_add_library(usc_utilities
 	src/accumulator.cpp
