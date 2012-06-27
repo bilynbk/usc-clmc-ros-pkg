@@ -8,10 +8,12 @@
 #ifndef ROBOT_INFO_INIT_H_
 #define ROBOT_INFO_INIT_H_
 
+#include <string>
+
 namespace robot_info
 {
 
-void init();
+void init(const std::string& ns = "");
 
 }
 

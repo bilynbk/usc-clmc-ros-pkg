@@ -64,7 +64,7 @@ public:
   /*!
    * @return
    */
-  static bool initialize();
+  static bool initialize(const std::string& ns = "");
   static int getNumJoints();
 
   /*!

@@ -237,6 +237,52 @@ bool TrajectoryUtilities::createJointStateTrajectory(dmp_lib::Trajectory& trajec
   return true;
 }
 
+
+bool TrajectoryUtilities::createPoseTrajectoryFromPoseMsg(dmp_lib::Trajectory& pose_trajectory,
+														  const std::string& abs_bag_file_name,
+														  const std::vector<string>& variable_names,
+														  const double samplingFrequency,
+														  const std::string& topic_name)
+{
+
+  if(variable_names.empty())
+  {
+    ROS_ERROR("There are no variable names provided. Cannot create pose trajectory.");
+    return false;
+  }
+
+  // read all joint state messages from bag file
+  std::vector<geometry_msgs::PoseStamped> pose_msgs;
+  ROS_VERIFY(usc_utilities::FileIO<geometry_msgs::PoseStamped>::readFromBagFile(pose_msgs, topic_name, abs_bag_file_name));
+  ROS_INFO("Read >%i< joint messages from bag file >%s<.", (int)pose_msgs.size(), abs_bag_file_name.c_str());
+
+
+  const int num_trajectory_points = static_cast<int> (pose_msgs.size());
+
+  ROS_VERIFY(pose_trajectory.initialize(variable_names, samplingFrequency, true, num_trajectory_points));
+
+  Eigen::VectorXd endeffector_pose = VectorXd::Zero(usc_utilities::Constants::N_CART + usc_utilities::Constants::N_QUAT);
+
+  for (int i = 0; i < num_trajectory_points; ++i)
+  {
+	geometry_msgs::Pose pose = pose_msgs[i].pose;
+
+    endeffector_pose(usc_utilities::Constants::X) = pose.position.x;
+    endeffector_pose(usc_utilities::Constants::Y) = pose.position.y;
+    endeffector_pose(usc_utilities::Constants::Z) = pose.position.z;
+
+    endeffector_pose(usc_utilities::Constants::N_CART + usc_utilities::Constants::QW) = pose.orientation.w;
+    endeffector_pose(usc_utilities::Constants::N_CART + usc_utilities::Constants::QX) = pose.orientation.x;
+    endeffector_pose(usc_utilities::Constants::N_CART + usc_utilities::Constants::QY) = pose.orientation.y;
+    endeffector_pose(usc_utilities::Constants::N_CART + usc_utilities::Constants::QZ) = pose.orientation.z;
+
+    ROS_VERIFY(pose_trajectory.add(endeffector_pose));
+  }
+
+  return true;
+}
+
+
 bool TrajectoryUtilities::createPoseTrajectory(dmp_lib::Trajectory& pose_trajectory,
                                                const dmp_lib::Trajectory& joint_trajectory,
                                                const std::string& start_link_name,

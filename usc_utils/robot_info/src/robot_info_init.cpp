@@ -13,9 +13,9 @@
 namespace robot_info
 {
 
-void init()
+void init(const std::string& ns)
 {
-  ROS_VERIFY(RobotInfo::initialize());
+  ROS_VERIFY(RobotInfo::initialize(ns));
   // TrajectoryTimingGenerator::initialize();
 }
 

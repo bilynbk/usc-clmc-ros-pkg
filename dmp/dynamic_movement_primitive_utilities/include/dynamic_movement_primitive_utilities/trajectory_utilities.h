@@ -104,6 +104,19 @@ public:
                                    const std::string& end_link_name,
                                    const std::vector<std::string>& variable_names);
 
+  /*! todo doc
+   * @param pose_trajectory
+   * @param abs_bag_file_name name of the bag file
+   * @param variable_names
+   * @param samplingFrequency
+   * @return True if success, otherwise False
+   */
+  static bool createPoseTrajectoryFromPoseMsg(dmp_lib::Trajectory& pose_trajectory,
+											  const std::string& abs_bag_file_name,
+											  const std::vector<std::string>& variable_names,
+											  const double samplingFrequency = robot_info::RobotInfo::DEFAULT_SAMPLING_FREQUENCY,
+											  const std::string& topic_name = "/cart_trajectory");
+
   /*!
    * @param trajectory
    * @param time_stampes

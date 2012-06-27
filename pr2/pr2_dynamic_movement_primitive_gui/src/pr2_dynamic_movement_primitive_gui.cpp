@@ -73,6 +73,9 @@ bool PR2DynamicMovementPrimitiveGUI::sendDMP(const dmp_lib::DMPPtr& dmp, bool wa
 {
   std::vector<std::string> variable_names = dmp->getVariableNames();
   bool right_arm = robot_info::RobotInfo::containsRightArm(variable_names);
+  // !! HACK
+  right_arm =true;
+  // !! HACK
   bool left_arm = robot_info::RobotInfo::containsLeftArm(variable_names);
   if(right_arm && left_arm)
   {

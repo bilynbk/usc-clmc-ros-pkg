@@ -467,7 +467,7 @@ void RobotInfo::checkInitialized()
   }
 }
 
-bool RobotInfo::initialize()
+bool RobotInfo::initialize(const std::string& ns)
 {
   if (initialized_)
   {
@@ -475,7 +475,7 @@ bool RobotInfo::initialize()
     return true;
   }
 
-  ros::NodeHandle robot_info_node_handle("/robot_info");
+  ros::NodeHandle robot_info_node_handle(ns + "/robot_info");
 
   std::string robot_name;
   ROS_VERIFY(usc_utilities::read(robot_info_node_handle, "robot_name", robot_name));
@@ -594,7 +594,7 @@ bool RobotInfo::initialize()
   joint_info_.resize(N_DOFS);
 
   // load urdf:
-  ROS_VERIFY(urdf_.initParam("/robot_description"));
+  ROS_VERIFY(urdf_.initParam(ns + "/robot_description"));
 
   // create kdl tree:
   ROS_VERIFY(kdl_parser::treeFromUrdfModel(urdf_, kdl_tree_));
