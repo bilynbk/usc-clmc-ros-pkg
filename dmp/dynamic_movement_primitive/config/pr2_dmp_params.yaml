@@ -2,6 +2,7 @@
 # Dynamic Movement Primitive (DMP)
 # -----------------------------------------------------------------------------------
 
+####base_link_name: base_link
 base_link_name: torso_lift_link
 
 joint_space_dmp:

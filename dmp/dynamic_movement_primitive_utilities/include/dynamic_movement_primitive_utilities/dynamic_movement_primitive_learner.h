@@ -169,6 +169,25 @@ template<class DMPType>
     											const std::vector<std::string>& robot_part_names,
     											const double sampling_frequency = robot_info::RobotInfo::DEFAULT_SAMPLING_FREQUENCY);
 
+
+    /*! Learn from a vector of geometry_msgs::PoseStamped samples (no bag file)!
+     * @param dmp
+     * @param node_handle
+     * @param pose_msgs
+     * @param robot_part_names
+     * @param start_link_name
+     * @param end_link_name
+     * @param sampling_frequency
+     * @return True if successful, otherwise False
+     */
+    static bool learnCartesianSpaceDMPFromPosesDirect(typename DMPType::DMPPtr& dmp,
+    											ros::NodeHandle& node_handle,
+    											const std::vector<geometry_msgs::PoseStamped>& pose_msgs,
+    											const std::vector<std::string>& robot_part_names,
+    											const double sampling_frequency = robot_info::RobotInfo::DEFAULT_SAMPLING_FREQUENCY);
+
+
+
     /*!
      * @param dmp
      * @param node_handle
@@ -566,12 +585,99 @@ template<class DMPType>
     return true;
   }
 
+
 template<class DMPType>
-  bool DynamicMovementPrimitiveLearner<DMPType>::learnCartesianSpaceDMPFromPoses(typename DMPType::DMPPtr& dmp,
+  bool DynamicMovementPrimitiveLearner<DMPType>::learnCartesianSpaceDMPFromPosesDirect(typename DMPType::DMPPtr& dmp,
                                                                         ros::NodeHandle& node_handle,
-                                                                        const std::string& abs_bag_file_name,
+                                                                        const std::vector<geometry_msgs::PoseStamped>& pose_msgs,
                                                                         const std::vector<std::string>& robot_part_names,
                                                                         const double sampling_frequency)
+  {
+    ROS_DEBUG("Learning cartesian space DMP from pose_msg with the following robot parts:");
+    for (int i = 0; i < (int)robot_part_names.size(); ++i)
+    {
+      ROS_DEBUG("- >%s<", robot_part_names[i].c_str());
+    }
+
+    //std::string base_link_name;
+    //ROS_VERIFY(usc_utilities::read(node_handle, "base_link_name", base_link_name));
+    ros::NodeHandle cartesian_space_node_handle(node_handle, "cartesian_space_dmp");
+
+    for (int i = 0; i < (int)robot_part_names.size(); ++i)
+    {
+      ROS_INFO("Learning cartesian space DMP for >%s<.", robot_part_names[i].c_str());
+      ros::NodeHandle robot_part_node_handle(cartesian_space_node_handle, robot_part_names[i]);
+
+      bool first = true;
+      typename DMPType::DMPPtr tmp_dmp;
+      std::string end_link_name;
+      //if(robot_part_node_handle.getParam("end_link_name", end_link_name))
+      //{
+        // TODO: Check this !!!
+        std::vector<std::string> robot_part_names_for_cartesian_space;
+        robot_part_names_for_cartesian_space.push_back(robot_part_names[i]);
+        // TODO: Check this !!!
+
+        // initialize dmp from node handle
+        ROS_VERIFY(DMPType::initFromNodeHandle(tmp_dmp, robot_part_names_for_cartesian_space, cartesian_space_node_handle));
+
+        // read joint space trajectory from bag file
+        std::vector<std::string> joint_variable_names;
+        ROS_VERIFY(robot_info::RobotInfo::getArmJointNames(robot_part_names_for_cartesian_space, joint_variable_names));
+
+        ROS_ASSERT_MSG(!joint_variable_names.empty(), "Joint variable names is empty. This should never happen.");
+        for (int j = 0; j < (int)joint_variable_names.size(); ++j)
+        {
+          ROS_DEBUG("Joint variable name: >%s<.", joint_variable_names[j].c_str());
+        }
+        //dmp_lib::Trajectory joint_trajectory;
+        //ROS_VERIFY(TrajectoryUtilities::createJointStateTrajectory(joint_trajectory, joint_variable_names, abs_bag_file_name, sampling_frequency));
+
+
+        dmp_lib::Trajectory pose_trajectory;
+        bool result = TrajectoryUtilities::createPoseTrajectoryFromPoseMsg(pose_trajectory, pose_msgs, tmp_dmp->getVariableNames(), sampling_frequency);
+        ROS_VERIFY(result);
+        ROS_VERIFY(pose_trajectory.computeDerivatives());
+
+        // TODO: save pose_trajectory
+
+        // learn dmp
+        ROS_VERIFY(tmp_dmp->learnFromTrajectory(pose_trajectory));
+        tmp_dmp->changeType(dynamic_movement_primitive::TypeMsg::DISCRETE_CARTESIAN_SPACE);
+
+
+
+        if(first)
+        {
+          first = false;
+          dmp = tmp_dmp;
+        }
+        else
+        {
+          dmp->add(*tmp_dmp);
+        }
+     // }
+     // else
+     // {
+     //  ROS_WARN("Skipping learning cartesian space DMP for robot part >%s<.", robot_part_names[i].c_str());
+     // }
+    }
+    if(!dmp.get())
+    {
+      ROS_ERROR("Error while creating DMP");
+      return false;
+    }
+
+    return true;
+  }
+
+
+template<class DMPType>
+  bool DynamicMovementPrimitiveLearner<DMPType>::learnCartesianSpaceDMPFromPoses(typename DMPType::DMPPtr& dmp,
+																			 	 ros::NodeHandle& node_handle,
+																				 const std::string& abs_bag_file_name,
+																				 const std::vector<std::string>& robot_part_names,
+																				 const double sampling_frequency)
   {
     ROS_DEBUG("Learning cartesian space DMP from file >%s< with the following robot parts:", abs_bag_file_name.c_str());
     for (int i = 0; i < (int)robot_part_names.size(); ++i)
@@ -615,7 +721,7 @@ template<class DMPType>
 
 
         dmp_lib::Trajectory pose_trajectory;
-        bool result = TrajectoryUtilities::createPoseTrajectoryFromPoseMsg(pose_trajectory, abs_bag_file_name, tmp_dmp->getVariableNames(), sampling_frequency, "/cart_trajectory");
+        bool result = TrajectoryUtilities::createPoseTrajectoryFromPoseBagFile(pose_trajectory, abs_bag_file_name, tmp_dmp->getVariableNames(), sampling_frequency, "/cart_trajectory");
         ROS_VERIFY(result);
         ROS_VERIFY(pose_trajectory.computeDerivatives());
 

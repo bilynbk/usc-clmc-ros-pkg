@@ -237,8 +237,7 @@ bool TrajectoryUtilities::createJointStateTrajectory(dmp_lib::Trajectory& trajec
   return true;
 }
 
-
-bool TrajectoryUtilities::createPoseTrajectoryFromPoseMsg(dmp_lib::Trajectory& pose_trajectory,
+bool TrajectoryUtilities::createPoseTrajectoryFromPoseBagFile(dmp_lib::Trajectory& pose_trajectory,
 														  const std::string& abs_bag_file_name,
 														  const std::vector<string>& variable_names,
 														  const double samplingFrequency,
@@ -254,7 +253,25 @@ bool TrajectoryUtilities::createPoseTrajectoryFromPoseMsg(dmp_lib::Trajectory& p
   // read all joint state messages from bag file
   std::vector<geometry_msgs::PoseStamped> pose_msgs;
   ROS_VERIFY(usc_utilities::FileIO<geometry_msgs::PoseStamped>::readFromBagFile(pose_msgs, topic_name, abs_bag_file_name));
-  ROS_INFO("Read >%i< joint messages from bag file >%s<.", (int)pose_msgs.size(), abs_bag_file_name.c_str());
+
+  return TrajectoryUtilities::createPoseTrajectoryFromPoseMsg(pose_trajectory, pose_msgs, variable_names, samplingFrequency);
+}
+
+
+
+bool TrajectoryUtilities::createPoseTrajectoryFromPoseMsg(dmp_lib::Trajectory& pose_trajectory,
+														  const std::vector<geometry_msgs::PoseStamped>& pose_msgs,
+														  const std::vector<string>& variable_names,
+														  const double samplingFrequency)
+{
+
+  if(variable_names.empty())
+  {
+    ROS_ERROR("There are no variable names provided. Cannot create pose trajectory.");
+    return false;
+  }
+
+  ROS_INFO("Got >%i< joint messages", (int)pose_msgs.size());
 
 
   const int num_trajectory_points = static_cast<int> (pose_msgs.size());

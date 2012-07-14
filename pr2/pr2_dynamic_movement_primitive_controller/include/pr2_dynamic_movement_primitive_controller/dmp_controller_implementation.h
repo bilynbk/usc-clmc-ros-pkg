@@ -421,7 +421,7 @@ template<class DMPType>
           else if (local_index == usc_utilities::Constants::N_CART + usc_utilities::Constants::QX)
           {
             // ROS_INFO("Changing qx: local_index = %i (real-time violation)", local_index);
-            ROS_VERIFY(dmp_->changeGoal(goal_pose->pose.orientation.w, local_index));
+            ROS_VERIFY(dmp_->changeGoal(goal_pose->pose.orientation.x, local_index));
           }
           else if (local_index == usc_utilities::Constants::N_CART + usc_utilities::Constants::QY)
           {

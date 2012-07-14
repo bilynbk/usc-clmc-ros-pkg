@@ -111,11 +111,22 @@ public:
    * @param samplingFrequency
    * @return True if success, otherwise False
    */
-  static bool createPoseTrajectoryFromPoseMsg(dmp_lib::Trajectory& pose_trajectory,
+  static bool createPoseTrajectoryFromPoseBagFile(dmp_lib::Trajectory& pose_trajectory,
 											  const std::string& abs_bag_file_name,
 											  const std::vector<std::string>& variable_names,
 											  const double samplingFrequency = robot_info::RobotInfo::DEFAULT_SAMPLING_FREQUENCY,
 											  const std::string& topic_name = "/cart_trajectory");
+
+  /*!
+   * @param pose_trajectory - result of the funciton
+   * @param pose_msgs vector of PoseStamped Messages
+   * @param variable_names - name of the variables
+   * @param samplingFrequency
+   */
+  static bool createPoseTrajectoryFromPoseMsg(dmp_lib::Trajectory& pose_trajectory,
+  											  const std::vector<geometry_msgs::PoseStamped>& pose_msgs,
+  											  const std::vector<std::string>& variable_names,
+  											  const double samplingFrequency = robot_info::RobotInfo::DEFAULT_SAMPLING_FREQUENCY);
 
   /*!
    * @param trajectory
